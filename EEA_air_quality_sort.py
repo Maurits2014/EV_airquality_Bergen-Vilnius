@@ -42,6 +42,7 @@ def scrape_csv_E1a_E2a():
     csv_wstation_dict = {"NO_8_28803":"NO0059A", "LT_8_27077":"LT00001"}
     for country in csv_wstation_dict:
         for year in ["2013", "2014", "2015", "2016", "2017", "2018"]:
+            # E1a and E2a csv files are encoded with UTF-16!
             csv_file_read = open("%s_%s_timeseries.csv" % (country, year), "r", encoding="utf-16")
             csv_panda = pd.read_csv(csv_file_read)
             f_csv.writerow([csv_wstation_dict[country], year, str(round(csv_panda["Concentration"].mean(), 3))])
