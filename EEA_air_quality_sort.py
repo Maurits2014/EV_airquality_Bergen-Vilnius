@@ -8,6 +8,7 @@
 # Operating system: Arch Linux 4.14.87-1-lts
 # python 3.7.1-1
 # pandas 0.24.2
+# scipy 1.2.1
 
 # Standard library imports
 import sys
@@ -16,6 +17,7 @@ import xml.etree.ElementTree as ET
 
 # Third party imports
 import pandas as pd
+from scipy import stats
 
 
 def scrape_xml_AirBase_v4():
@@ -41,17 +43,31 @@ def scrape_csv_E1a_E2a():
     f_csv = csv.writer(f, delimiter=",")
     csv_wstation_dict = {"NO_8_28803":"NO0059A", "LT_8_27077":"LT00001"}
     for country in csv_wstation_dict:
+        # E1a and E2a are encoded with UTF-16
         for year in ["2013", "2014", "2015", "2016", "2017", "2018"]:
-            # E1a and E2a csv files are encoded with UTF-16!
-            csv_file_read = open("%s_%s_timeseries.csv" % (country, year), "r", encoding="utf-16")
-            csv_panda = pd.read_csv(csv_file_read)
+            csvv = open("%s_%s_timeseries.csv" % (country, year), "r", encoding="utf-16")
+            csv_panda = pd.read_csv(csvv)
             f_csv.writerow([csv_wstation_dict[country], year, str(round(csv_panda["Concentration"].mean(), 3))])
+            csvv.close()
     f.close()
 
+
+def r_p_values():
+    """calculate statistic pearson r and p values"""
+    f = open("number_EVs_annual.csv", "r")
+    f_panda = pd.read_csv(f)
+    f2 = open("mean_1318_sort.csv", "r")
+    f2_panda = pd.read_csv(f2)
+    print("Norway r and p values:", stats.pearsonr((f_panda["number"].loc[f_panda["country"]=="Norway"]), (f2_panda["mean"].loc[f2_panda["wstation"]=="NO0059A"])))
+    print("Lithiania r and p values:", stats.pearsonr((f_panda["number"].loc[f_panda["country"]=="Lithuania"]), (f2_panda["mean"].loc[f2_panda["wstation"]=="LT00001"])))
+    f.close()
+    f2.close()
+    
 
 def main():
     scrape_xml_AirBase_v4()
     scrape_csv_E1a_E2a()
+    r_p_values()
 
 
 if __name__ == "__main__":
